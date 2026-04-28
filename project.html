@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AcadShield Pro</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    color: white;
+    text-align: center;
+}
+
+.card {
+    background: white;
+    color: black;
+    padding: 20px;
+    margin: 20px auto;
+    width: 60%;
+    border-radius: 10px;
+}
+
+input, button {
+    padding: 10px;
+    margin: 10px;
+}
+
+button {
+    background: #2a5298;
+    color: white;
+    border: none;
+}
+
+.high { color: red; }
+.medium { color: orange; }
+.low { color: green; }
+
+.progress {
+    width: 100%;
+    background: #ddd;
+    border-radius: 10px;
+}
+
+.bar {
+    height: 20px;
+    background: green;
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1><i class="fa-solid fa-shield-halved"></i> AcadShield Pro</h1>
+
+<div class="card">
+<h3>Add Student</h3>
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<button onclick="addStudent()">Add</button>
+</div>
+
+<div class="card">
+<h3>Submit File</h3>
+<input id="sid" placeholder="Student ID">
+<input id="file" placeholder="File Name">
+<button onclick="submitFile()">Submit</button>
+</div>
+
+<div class="card">
+<h3>Reports</h3>
+<button onclick="loadReports()">Load</button>
+<table border="1" width="100%">
+<tr>
+<th>Name</th>
+<th>File</th>
+<th>Similarity</th>
+<th>Status</th>
+</tr>
+<tbody id="data"></tbody>
+</table>
+</div>
+
+<script>
+
+function addStudent() {
+    fetch("http://127.0.0.1:5000/add_student", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value
+        })
+    });
+}
+
+function submitFile() {
+    fetch("http://127.0.0.1:5000/submit", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            student_id: document.getElementById("sid").value,
+            file_name: document.getElementById("file").value
+        })
+    }).then(res => res.json())
+    .then(data => alert("Similarity: " + data.similarity + "%"));
+}
+
+function loadReports() {
+    fetch("http://127.0.0.1:5000/reports")
+    .then(res => res.json())
+    .then(data => {
+        let rows = "";
+        data.forEach(d => {
+            let color = d.status.toLowerCase();
+            rows += `<tr>
+                <td>${d.name}</td>
+                <td>${d.file_name}</td>
+                <td>
+                    ${d.similarity}%
+                    <div class="progress">
+                        <div class="bar" style="width:${d.similarity}%"></div>
+                    </div>
+                </td>
+                <td class="${color}">${d.status}</td>
+            </tr>`;
+        });
+        document.getElementById("data").innerHTML = rows;
+    });
+}
+
+</script>
+
+</body>
+</html>
